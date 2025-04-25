@@ -35,6 +35,19 @@ Matrix4x4 MakeScaleMatrix(const Vector3& scale) {
     };
 }
 
+// 行列の掛け算
+Matrix4x4 Multiply(const Matrix4x4& m1, const Matrix4x4& m2) {
+    Matrix4x4 result = {};
+    for (int row = 0; row < 4; ++row) {
+        for (int col = 0; col < 4; ++col) {
+            for (int k = 0; k < 4; ++k) {
+                result.m[row][col] += m1.m[row][k] * m2.m[k][col];
+            }
+        }
+    }
+    return result;
+}
+
 // ベクトルと行列の変換
 Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix) {
     Vector3 result;
@@ -68,19 +81,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     char keys[256] = { 0 };
     char preKeys[256] = { 0 };
 
-    // 修正後のデータ
+    // ベクトルと行列の定義
     Vector3 translate = { 4.10f, 2.60f, 0.80f };
     Vector3 scale = { 1.5f, 5.2f, 7.3f };
     Vector3 point = { 2.3f, 3.8f, 1.4f };
 
-    // 変更された translateMatrix
+    // 行列の作成
     Matrix4x4 translateMatrix = MakeTranslateMatrix(translate);
-
-    // scaleMatrix は元のまま
     Matrix4x4 scaleMatrix = MakeScaleMatrix(scale);
 
-    // transformed を指定された固定値にする
-    Vector3 transformed = { 0.71f, 0.67f, 0.60f };
+    
+    Matrix4x4 worldMatrix = Multiply(scaleMatrix, translateMatrix);
+
+    // 変換
+    Vector3 transformed = Transform(point, worldMatrix);
 
     while (Novice::ProcessMessage() == 0) {
         Novice::BeginFrame();
@@ -92,6 +106,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
         VectorScreenPrintf(0, 0, transformed, "Transformed Point");
         MatrixScreenPrintf(0, kRowHeight * 2, translateMatrix, "Translate Matrix");
         MatrixScreenPrintf(0, kRowHeight * 7, scaleMatrix, "Scale Matrix");
+        
 
         Novice::EndFrame();
 
